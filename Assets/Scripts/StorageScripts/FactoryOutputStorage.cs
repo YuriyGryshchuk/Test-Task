@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FactoryStorage : MonoBehaviour
+public class FactoryOutputStorage : MonoBehaviour
 {
     [SerializeField]
     protected GameObject ProductPrefab;
@@ -21,6 +21,10 @@ public class FactoryStorage : MonoBehaviour
     protected float ProductHeight;
     private GameObject[,] _storageList;
     private GameObject _currentProduct;
+    private Vector3 _productPositionInStorage;
+    private PlayerStorage _playerStorage;
+    private bool _isSpawn = false;
+    private bool _isStorageEmpty = false;
 
     public delegate void StorageDelegate(Vector3 productPositionInStorage);
     public event StorageDelegate StorageReady;
@@ -51,20 +55,45 @@ public class FactoryStorage : MonoBehaviour
                 }
             }
         }
-        
     }
 
-    private Vector3 GenerateProductPositionInStorage(int width, int height)
+    private IEnumerator TransitToPlayerStorage()
+    {
+        for (int i = 0; i < _storageWidth; i++)
+        {
+            for (int j = 0; j < _storageLength; j++)
+            {
+                if (_storageList[i, j] != null)
+                {
+                    _storageList[i, j].GetComponent<ProductMover>().Init(_productPositionInStorage);
+                    _storageList[i, j].transform.SetParent(_playerStorage.gameObject.transform);
+                    _playerStorage.SetCurrentProduct(_storageList[i, j]);
+                    _storageList[i, j] = null;
+                    yield break;
+                }
+            }
+        }
+        yield return null;
+    }
+
+    private Vector3 GenerateProductPositionInStorage(int width, int lenght)
     {
         return new Vector3(
                 StorageTransformSpawnpoint.position.x + ProductWidth * width,
                 StorageTransformSpawnpoint.position.y,
-                StorageTransformSpawnpoint.position.z + ProductLength * height);
+                StorageTransformSpawnpoint.position.z + ProductLength * lenght);
     }
 
     public void SetCurrentProduct(GameObject currentProduct)
     {
         _currentProduct = currentProduct;
+    }
+
+    public void PlayerStorageInit(PlayerStorage playerStorage, Vector3 productPositionInStorage)
+    {
+        _playerStorage = playerStorage;
+        _productPositionInStorage = productPositionInStorage;
+        StartCoroutine(TransitToPlayerStorage());
     }
 }
 

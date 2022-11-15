@@ -12,13 +12,13 @@ public class Factory : MonoBehaviour
     [SerializeField]
     private float _factorySpawnDelay;
     [SerializeField]
-    private FactoryStorage _factoryStorage;
+    private FactoryOutputStorage _factoryStorage;
 
     private bool _isSpawn = false;
     private bool _isStorageEmpty = false;
     private Vector3 _productPositionInStorage;
 
-    private void Start()
+    private void Awake()
     {
         StartCoroutine(SpawnProductDelay());
         _factoryStorage.StorageReady += SpawnReadyInit;
@@ -34,6 +34,7 @@ public class Factory : MonoBehaviour
         if (_isSpawn && _isStorageEmpty)
         {
             GameObject product = Instantiate(_productPrefab, _factorySpawn.position, Quaternion.identity);
+            product.GetComponent<BoxCollider>().enabled = false;
             product.GetComponent<ProductMover>().Init(_productPositionInStorage);
             _factoryStorage.SetCurrentProduct(product);
             _isSpawn = false;
@@ -55,6 +56,4 @@ public class Factory : MonoBehaviour
             yield return new WaitForSeconds(_factorySpawnDelay);
         }
     }
-
-
 }
