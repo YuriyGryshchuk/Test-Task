@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Factory : MonoBehaviour
+public class Factory1 : MonoBehaviour
 {
     [SerializeField]
     private GameObject _productPrefab;
@@ -35,7 +35,7 @@ public class Factory : MonoBehaviour
         {
             GameObject product = Instantiate(_productPrefab, _factorySpawn.position, Quaternion.identity);
             product.GetComponent<BoxCollider>().enabled = false;
-            product.GetComponent<ProductMover>().Init(_productPositionInStorage);
+            product.GetComponent<ProductMover>().Init(_productPositionInStorage, false);
             _factoryStorage.SetCurrentProduct(product);
             _isSpawn = false;
             _isStorageEmpty = false;

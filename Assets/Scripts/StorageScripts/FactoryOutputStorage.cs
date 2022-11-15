@@ -65,7 +65,7 @@ public class FactoryOutputStorage : MonoBehaviour
             {
                 if (_storageList[i, j] != null)
                 {
-                    _storageList[i, j].GetComponent<ProductMover>().Init(_productPositionInStorage);
+                    _storageList[i, j].GetComponent<ProductMover>().Init(_productPositionInStorage, false);
                     _storageList[i, j].transform.SetParent(_playerStorage.gameObject.transform);
                     _playerStorage.SetCurrentProduct(_storageList[i, j]);
                     _storageList[i, j] = null;

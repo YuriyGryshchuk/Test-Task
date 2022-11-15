@@ -14,6 +14,8 @@ public class FactoryInputStorage : MonoBehaviour
     private int _storageWidth;
     [SerializeField]
     private int _storageHeight;
+    [SerializeField]
+    private float _transitToFactoryStorageDeley;
 
     protected float ProductLength;
     protected float ProductWidth;
@@ -24,7 +26,6 @@ public class FactoryInputStorage : MonoBehaviour
     private PlayerStorage _playerStorage;
     private bool _isSpawn = false;
     private bool _isStorageEmpty = false;
-    private float _transitToFactoryStorageDeley;
     private IEnumerator _checkStorageFullnessCoroutine;
 
     public delegate void StorageDelegate(Vector3 productPositionInStorage);
@@ -58,7 +59,7 @@ public class FactoryInputStorage : MonoBehaviour
         }
     }
 
-    private IEnumerator TransitToPlayerStorage()
+    public IEnumerator TransitToFactory(Vector3 ingridientPosition, Factory2 factory2)
     {
         for (int i = 0; i < _storageWidth; i++)
         {
@@ -66,9 +67,8 @@ public class FactoryInputStorage : MonoBehaviour
             {
                 if (_storageList[i, j] != null)
                 {
-                    _storageList[i, j].GetComponent<ProductMover>().Init(_productPositionInStorage);
-                    _storageList[i, j].transform.SetParent(_playerStorage.gameObject.transform);
-                    _playerStorage.SetCurrentProduct(_storageList[i, j]);
+                    _storageList[i, j].GetComponent<ProductMover>().Init(ingridientPosition, true);
+                    factory2.SetIngredient(_storageList[i, j]);
                     _storageList[i, j] = null;
                     yield break;
                 }
@@ -88,13 +88,6 @@ public class FactoryInputStorage : MonoBehaviour
     public void SetCurrentProduct(GameObject currentProduct)
     {
         _currentProduct = currentProduct;
-    }
-
-    public void PlayerStorageInit(PlayerStorage playerStorage, Vector3 productPositionInStorage)
-    {
-        _playerStorage = playerStorage;
-        _productPositionInStorage = productPositionInStorage;
-        StartCoroutine(TransitToPlayerStorage());
     }
 
     public void StartTransit(PlayerStorage playerStorage)
