@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Factory : MonoBehaviour
@@ -14,6 +13,8 @@ public class Factory : MonoBehaviour
 
     [SerializeField]
     protected Transform _factorySpawn;
+    [SerializeField]
+    protected string FactoryName;
 
     private Transform _productTransformInStorage;
 
@@ -28,7 +29,28 @@ public class Factory : MonoBehaviour
 
     private void Update()
     {
+        FactoryOutputInfoCheck();
         SpawnProduct—heck();
+    }
+
+    private void OnDestroy()
+    {
+        _factoryStorage.StorageReady -= SpawnReadyInit;
+    }
+
+    private void SpawnReadyInit(Transform productTransformInStorage)
+    {
+        _productTransformInStorage = productTransformInStorage;
+        IsStorageEmpty = true;
+    }
+
+    private IEnumerator SpawnProductDelay()
+    {
+        while (true)
+        {
+            IsSpawn = true;
+            yield return new WaitForSeconds(_factorySpawnDelay);
+        }
     }
 
     protected virtual void SpawnProduct—heck()
@@ -48,19 +70,17 @@ public class Factory : MonoBehaviour
         IsSpawn = false;
         IsStorageEmpty = false;
     }
-
-    private void SpawnReadyInit(Transform productTransformInStorage)
+    
+    public string FactoryOutputInfoCheck()
     {
-        _productTransformInStorage = productTransformInStorage;
-        IsStorageEmpty = true;
-    }
-
-    private IEnumerator SpawnProductDelay()
-    {
-        while (true)
+        if(IsSpawn && IsStorageEmpty == false)
         {
-            IsSpawn = true;
-            yield return new WaitForSeconds(_factorySpawnDelay);
+            return FactoryName + " - " + "Output Storage Full";
         }
+        if (IsSpawn && IsStorageEmpty)
+        {
+            return "";
+        }
+        return "";
     }
 }

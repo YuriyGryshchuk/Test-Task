@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerStorage : Storage
@@ -91,9 +90,9 @@ public class PlayerStorage : Storage
     protected override Vector3 GenerateItemPositionInStorage(int i, int j, Transform storageTransformSpawnpoint)
     {
         return new Vector3(
-                storageTransformSpawnpoint.position.x + +ProductWidth * i,
+                storageTransformSpawnpoint.position.x,
                 storageTransformSpawnpoint.position.y + ProductHeight * j,
-                storageTransformSpawnpoint.position.z);
+                storageTransformSpawnpoint.position.z + ProductLength * -i);
     }
 
     protected override GameObject[,] GetStorageList()

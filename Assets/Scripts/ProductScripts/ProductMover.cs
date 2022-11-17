@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class ProductMover : MonoBehaviour
@@ -18,7 +17,8 @@ public class ProductMover : MonoBehaviour
     private void Update()
     {
         _productTransform.position = Vector3.Lerp(_productTransform.position, _targetTransform.position, Time.deltaTime);
-        if(Vector3.Distance(_productTransform.position, _targetTransform.position) <= _lerpModifaer)
+        _productTransform.rotation = _targetTransform.rotation;
+        if (Vector3.Distance(_productTransform.position, _targetTransform.position) <= _lerpModifaer)
         {
             _productTransform.position = _targetTransform.position;
             if (_isDestroy)
