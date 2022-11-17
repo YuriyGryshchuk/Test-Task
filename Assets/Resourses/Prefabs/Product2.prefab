@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3995992982996445866}
   m_Layer: 0
   m_Name: Product2
-  m_TagString: Untagged
+  m_TagString: Product2
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -109,3 +109,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _productSpeed: 2
+  _lerpModifaer: 0.05

@@ -7,8 +7,8 @@ public class ProductMover : MonoBehaviour
     private float _productSpeed = 2f;
     [SerializeField]
     private float _lerpModifaer = 0.1f;
-    private bool _isDestroy;
-    private Vector3 _targetPosition;
+    private bool _isDestroy = false;
+    private Transform _targetTransform;
     private Transform _productTransform;
 
     private void Start()
@@ -17,20 +17,23 @@ public class ProductMover : MonoBehaviour
     }
     private void Update()
     {
-        _productTransform.position = Vector3.Lerp(_productTransform.position, _targetPosition, Time.deltaTime);
-        if(Vector3.Distance(_productTransform.position, _targetPosition) <= _lerpModifaer)
+        _productTransform.position = Vector3.Lerp(_productTransform.position, _targetTransform.position, Time.deltaTime);
+        if(Vector3.Distance(_productTransform.position, _targetTransform.position) <= _lerpModifaer)
         {
-            _productTransform.position = _targetPosition;
+            _productTransform.position = _targetTransform.position;
             if (_isDestroy)
             {
                 Destroy(this.gameObject);
             }
         }
     }
-
-    public void Init(Vector3 targetPosition, bool isDestroy)
+    public void Init(Transform targetTransform)
     {
-        _isDestroy = isDestroy;
-        _targetPosition = targetPosition;
+        _targetTransform = targetTransform;
+    }
+
+    public void Destroy()
+    {
+        _isDestroy = true;
     }
 }

@@ -1,75 +1,44 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class FactoryInputStorage : MonoBehaviour
+public abstract class FactoryInputStorage : FactoryStorage
 {
     [SerializeField]
-    protected GameObject ProductPrefab;
-    [SerializeField]
-    protected Transform StorageTransformSpawnpoint;
-    [SerializeField]
-    private int _storageLength;
-    [SerializeField]
-    private int _storageWidth;
-    [SerializeField]
-    private int _storageHeight;
-    [SerializeField]
     private float _transitToFactoryStorageDeley;
+    [SerializeField]
+    private string _inputProductTag;
 
-    protected float ProductLength;
-    protected float ProductWidth;
-    protected float ProductHeight;
-    private GameObject[,] _storageList;
-    private GameObject _currentProduct;
-    private Vector3 _productPositionInStorage;
-    private PlayerStorage _playerStorage;
-    private bool _isSpawn = false;
-    private bool _isStorageEmpty = false;
     private IEnumerator _checkStorageFullnessCoroutine;
 
-    public delegate void StorageDelegate(Vector3 productPositionInStorage);
-    public event StorageDelegate StorageReady;
-
-    private void Start()
+    private IEnumerator CheckStorageFullness(PlayerStorage playerStorage, float transitToFactoryStorageDeley)
     {
-        _storageList = new GameObject[_storageWidth, _storageLength];
-        var product = Instantiate(ProductPrefab);
-        ProductLength = product.transform.localScale.z;
-        ProductWidth = product.transform.localScale.x;
-        ProductHeight = product.transform.localScale.y;
-        Destroy(product);
-    }
-
-    private IEnumerator CheckStorageFullness(PlayerStorage playerStorage)
-    {
-        for (int i = 0; i < _storageWidth; i++)
+        for (int i = 0; i < StorageItemList.Rank; i++)
         {
-            for (int j = 0; j < _storageLength; j++)
+            for (int j = 0; j < StorageItemList.Length / StorageItemList.Rank; j++)
             {
-                if (_storageList[i, j] == null)
+                if (StorageItemList[i, j] == null)
                 {
-                    playerStorage.PlayerStorageInit(this, GenerateProductPositionInStorage(i, j));
-                    yield return new WaitUntil(predicate: () => _currentProduct != null);
-                    _storageList[i, j] = _currentProduct;
-                    _currentProduct = null;
-                    yield return new WaitForSeconds(_transitToFactoryStorageDeley);
+                    playerStorage.PlayerStorageInit(this, StorageSpawnpointList[i, j].transform, _inputProductTag);
+                    yield return new WaitUntil(predicate: () => CurrentProduct != null);
+                    StorageItemList[i, j] = CurrentProduct;
+                    CurrentProduct = null;
+                    yield return new WaitForSeconds(transitToFactoryStorageDeley);
                 }
             }
         }
     }
 
-    public IEnumerator TransitToFactory(Vector3 ingridientPosition, Factory2 factory2)
+    public IEnumerator TransitToFactory(Transform ingridientTransform, NeedInputFactory needInputFactory)
     {
-        for (int i = 0; i < _storageWidth; i++)
+        for (int i = 0; i < StorageItemList.Rank; i++)
         {
-            for (int j = 0; j < _storageLength; j++)
+            for (int j = 0; j < StorageItemList.Length / StorageItemList.Rank; j++)
             {
-                if (_storageList[i, j] != null)
+                if (StorageItemList[i, j] != null)
                 {
-                    _storageList[i, j].GetComponent<ProductMover>().Init(ingridientPosition, true);
-                    factory2.SetIngredient(_storageList[i, j]);
-                    _storageList[i, j] = null;
+                    StorageItemList[i, j].GetComponent<ProductMover>().Init(ingridientTransform);
+                    SetIngredient(needInputFactory, StorageItemList[i, j]);
+                    StorageItemList[i, j] = null;
                     yield break;
                 }
             }
@@ -77,22 +46,11 @@ public class FactoryInputStorage : MonoBehaviour
         yield return null;
     }
 
-    private Vector3 GenerateProductPositionInStorage(int width, int lenght)
-    {
-        return new Vector3(
-                StorageTransformSpawnpoint.position.x + ProductWidth * width,
-                StorageTransformSpawnpoint.position.y,
-                StorageTransformSpawnpoint.position.z + ProductLength * lenght);
-    }
-
-    public void SetCurrentProduct(GameObject currentProduct)
-    {
-        _currentProduct = currentProduct;
-    }
+    protected abstract void SetIngredient(NeedInputFactory needInputFactory, GameObject ingridient);
 
     public void StartTransit(PlayerStorage playerStorage)
     {
-        _checkStorageFullnessCoroutine = CheckStorageFullness(playerStorage);
+        _checkStorageFullnessCoroutine = CheckStorageFullness(playerStorage, _transitToFactoryStorageDeley);
         StartCoroutine(_checkStorageFullnessCoroutine);
     }
 

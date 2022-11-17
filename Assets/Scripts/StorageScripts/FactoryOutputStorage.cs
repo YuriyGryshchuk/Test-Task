@@ -1,74 +1,64 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class FactoryOutputStorage : MonoBehaviour
+public class FactoryOutputStorage : FactoryStorage
 {
-    [SerializeField]
-    protected GameObject ProductPrefab;
-    [SerializeField]
-    protected Transform StorageTransformSpawnpoint;
-    [SerializeField]
-    private int _storageLength;
-    [SerializeField]
-    private int _storageWidth;
-    [SerializeField]
-    private int _storageHeight;
 
-    protected float ProductLength;
-    protected float ProductWidth;
-    protected float ProductHeight;
-    private GameObject[,] _storageList;
-    private GameObject _currentProduct;
-    private Vector3 _productPositionInStorage;
     private PlayerStorage _playerStorage;
-    private bool _isSpawn = false;
-    private bool _isStorageEmpty = false;
+    private Transform _productTransformInStorage;
+    private bool _isCheckCoroutineRun = false;
 
-    public delegate void StorageDelegate(Vector3 productPositionInStorage);
+    public delegate void StorageDelegate(Transform productTransformInStorage);
     public event StorageDelegate StorageReady;
 
-    private void Start()
+    private void Update()
     {
-        _storageList = new GameObject[_storageWidth, _storageLength];
-        var product = Instantiate(ProductPrefab);
-        ProductLength = product.transform.localScale.z;
-        ProductWidth = product.transform.localScale.x;
-        ProductHeight = product.transform.localScale.y;
-        Destroy(product);
-        StartCoroutine(CheckStorageFullness());
+        if (StorageItemList[0, 0] == null && _isCheckCoroutineRun == false)
+        {
+            StartCoroutine(CheckStorageFullness());
+            _isCheckCoroutineRun = true;
+        }
     }
 
+    private IEnumerator SpawnRequest()
+    {
+        while (StorageItemList[0, 0] == null && _isCheckCoroutineRun == false)
+        {
+            StartCoroutine(CheckStorageFullness());
+            _isCheckCoroutineRun = true;
+            yield return new WaitForSeconds(1);
+        }
+    }
     private IEnumerator CheckStorageFullness()
     {
-        for (int i = 0; i < _storageWidth; i++)
+        for (int i = 0; i < StorageItemList.Rank; i++)
         {
-            for (int j = 0; j < _storageLength; j++)
+            for (int j = 0; j < StorageItemList.Length / StorageItemList.Rank; j++)
             {
-                if (_storageList[i, j] == null)
+                if (StorageItemList[i, j] == null)
                 {
-                    StorageReady?.Invoke(GenerateProductPositionInStorage(i, j));
-                    yield return new WaitUntil(predicate: () => _currentProduct != null);
-                    _storageList[i, j] = _currentProduct;
-                    _currentProduct = null;
+                    StorageReady?.Invoke(StorageSpawnpointList[i, j].transform);
+                    yield return new WaitUntil(predicate: () => CurrentProduct != null);
+                    StorageItemList[i, j] = CurrentProduct;
+                    CurrentProduct = null;
                 }
             }
         }
+        _isCheckCoroutineRun = false;
     }
 
     private IEnumerator TransitToPlayerStorage()
     {
-        for (int i = 0; i < _storageWidth; i++)
+        for (int i = 0; i < StorageItemList.Rank; i++)
         {
-            for (int j = 0; j < _storageLength; j++)
+            for (int j = 0; j < StorageItemList.Length / StorageItemList.Rank; j++)
             {
-                if (_storageList[i, j] != null)
+                if (StorageItemList[i, j] != null)
                 {
-                    _storageList[i, j].GetComponent<ProductMover>().Init(_productPositionInStorage, false);
-                    _storageList[i, j].transform.SetParent(_playerStorage.gameObject.transform);
-                    _playerStorage.SetCurrentProduct(_storageList[i, j]);
-                    _storageList[i, j] = null;
+                    StorageItemList[i, j].GetComponent<ProductMover>().Init(_productTransformInStorage);
+                    StorageItemList[i, j].transform.SetParent(_playerStorage.gameObject.transform);
+                    _playerStorage.SetCurrentProduct(StorageItemList[i, j]);
+                    StorageItemList[i, j] = null;
                     yield break;
                 }
             }
@@ -76,23 +66,10 @@ public class FactoryOutputStorage : MonoBehaviour
         yield return null;
     }
 
-    private Vector3 GenerateProductPositionInStorage(int width, int lenght)
-    {
-        return new Vector3(
-                StorageTransformSpawnpoint.position.x + ProductWidth * width,
-                StorageTransformSpawnpoint.position.y,
-                StorageTransformSpawnpoint.position.z + ProductLength * lenght);
-    }
-
-    public void SetCurrentProduct(GameObject currentProduct)
-    {
-        _currentProduct = currentProduct;
-    }
-
-    public void PlayerStorageInit(PlayerStorage playerStorage, Vector3 productPositionInStorage)
+    public void FactoryStorageInit(PlayerStorage playerStorage, Transform productTransformInStorage)
     {
         _playerStorage = playerStorage;
-        _productPositionInStorage = productPositionInStorage;
+        _productTransformInStorage = productTransformInStorage;
         StartCoroutine(TransitToPlayerStorage());
     }
 }
